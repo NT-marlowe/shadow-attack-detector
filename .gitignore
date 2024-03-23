@@ -1,0 +1,11 @@
+*.out
+*.txt
+foobar
+
+/benchmark/bin/*
+!/benchmark/bin/
+
+/escape/*
+!/escape/
+
+.vscode
