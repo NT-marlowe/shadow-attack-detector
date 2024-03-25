@@ -1,6 +1,7 @@
 #include <sys/wait.h>
 
 #include "common_server.h"
+#include "../util.h"
 
 #define EXECVE_SOCKET_PATH "/tmp/execve.sock"
 
@@ -23,15 +24,12 @@ int main() {
 	strcpy(server_addr.sun_path, EXECVE_SOCKET_PATH);
 
 	unlink(EXECVE_SOCKET_PATH);
-	if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(struct sockaddr_un)) == -1) {
-		perror("bind");
-		exit(EXIT_FAILURE);
-	}
 
-	if (listen(server_fd, 5) == -1) {
-		perror("listen");
-		exit(EXIT_FAILURE);
-	}
+	exit_if_error(bind(server_fd, (struct sockaddr *)&server_addr,
+					  sizeof(struct sockaddr_un)),
+		"bind");
+
+	exit_if_error(listen(server_fd, 5), "listen");
 
 	printf("Server is waiting for client...\n");
 
@@ -65,7 +63,8 @@ int callExecve(char *executable_path) {
 
 	} else if (pid == 0) {
 		// chile process
-		char *args[] = {executable_path, "/home/marlowe/shadow-attack-detector/benchmark/foobar", NULL};
+		char *args[] = {executable_path,
+			"/home/marlowe/shadow-attack-detector/benchmark/foobar", NULL};
 		execv(executable_path, args);
 
 		perror("execv failed");

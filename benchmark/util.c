@@ -65,3 +65,10 @@ int recv_fd(int socket_fd) {
 	fd                   = (int *)CMSG_DATA(cmsg);
 	return *fd;
 }
+
+void exit_if_error(const int result, const char *message) {
+	if (result == -1) {
+		perror(message);
+		exit(EXIT_FAILURE);
+	}
+}

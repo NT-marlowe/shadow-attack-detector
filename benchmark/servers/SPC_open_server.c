@@ -22,15 +22,11 @@ int main() {
 	strcpy(server_addr.sun_path, OPEN_SOCKET_PATH);
 
 	unlink(OPEN_SOCKET_PATH);
-	if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(struct sockaddr_un)) == -1) {
-		perror("bind");
-		exit(EXIT_FAILURE);
-	}
+	exit_if_error(bind(server_fd, (struct sockaddr *)&server_addr,
+					  sizeof(struct sockaddr_un)),
+		"bind");
 
-	if (listen(server_fd, 5) == -1) {
-		perror("listen");
-		exit(EXIT_FAILURE);
-	}
+	exit_if_error(listen(server_fd, 5), "listen");
 
 	printf("Server is waiting for client...\n");
 
