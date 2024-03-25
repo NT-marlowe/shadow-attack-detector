@@ -17,10 +17,9 @@ int SPC_open(const char *pathname) {
 	server_addr.sun_family = AF_UNIX;
 	strcpy(server_addr.sun_path, OPEN_SOCKET_PATH);
 
-	if (connect(socket_fd, (struct sockaddr *)&server_addr, sizeof(struct sockaddr_un)) == -1) {
-		perror("connect");
-		exit(EXIT_FAILURE);
-	}
+	exit_if_error(connect(socket_fd, (struct sockaddr *)&server_addr,
+					  sizeof(struct sockaddr_un)),
+		"connect");
 
 	write(socket_fd, buffer, strlen(buffer) + 1);
 
@@ -39,5 +38,5 @@ int SPC_open(const char *pathname) {
 
 	close(received_fd);
 	close(socket_fd);
-	return EXIT_SUCCESS;
+	return received_fd;
 }
