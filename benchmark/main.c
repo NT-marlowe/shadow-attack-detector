@@ -13,6 +13,7 @@ int main(void) {
 	const char *pathname =
 		"/home/marlowe/shadow-attack-detector/benchmark/foobar";
 	int fd = SPC_open(pathname);
+	printf("fd: %d\n", fd);
 
 	char read_buffer[128];
 	read(fd, read_buffer, 128);

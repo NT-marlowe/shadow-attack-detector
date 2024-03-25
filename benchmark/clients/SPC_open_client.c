@@ -26,17 +26,6 @@ int SPC_open(const char *pathname) {
 	int received_fd = recv_fd(socket_fd);
 	printf("Server Response: %d\n", received_fd);
 
-	char buffer_foo[1024];
-	ssize_t bytes_read = read(received_fd, buffer_foo, sizeof(buffer) - 1);
-	if (bytes_read < 0) {
-		perror("read error");
-		exit(EXIT_FAILURE);
-	}
-
-	buffer_foo[bytes_read] = '\0';
-	printf("Received data: %s\n", buffer_foo);
-
-	close(received_fd);
 	close(socket_fd);
 	return received_fd;
 }
