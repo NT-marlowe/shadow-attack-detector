@@ -63,14 +63,12 @@ func main() {
 	for {
 		record, err := rd.Read()
 		if err != nil {
-			if err != nil {
-				if errors.Is(err, ringbuf.ErrClosed) {
-					log.Println("received signal, exiting...")
-					return
-				}
-				log.Printf("Reading from ringbuff: %s", err)
-				continue
+			if errors.Is(err, ringbuf.ErrClosed) {
+				log.Println("received signal, exiting...")
+				return
 			}
+			log.Printf("Reading from ringbuff: %s", err)
+			continue
 		}
 
 		if err := binary.Read(bytes.NewBuffer(record.RawSample), binary.BigEndian, &event); err != nil {
