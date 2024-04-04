@@ -1,58 +1,95 @@
-// This program demonstrates attaching an eBPF program to a kernel symbol.
-// The eBPF program will be attached to the start of the sys_execve
-// kernel function and prints out the number of times it has been called
-// every second.
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
+	"errors"
 	"log"
-	"time"
+	"net"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/cilium/ebpf/link"
+	"github.com/cilium/ebpf/ringbuf"
 	"github.com/cilium/ebpf/rlimit"
 )
 
-const mapKey uint32 = 0
-
 func main() {
+	stopper := make(chan os.Signal, 1)
+	signal.Notify(stopper, os.Interrupt, syscall.SIGTERM)
 
-	// Name of the kernel function to trace.
-	fn := "sys_execve"
-
-	// Allow the current process to lock memory for eBPF resources.
 	if err := rlimit.RemoveMemlock(); err != nil {
 		log.Fatal(err)
 	}
 
-	// Load pre-compiled programs and maps into the kernel.
-	objs := kprobeObjects{}
-	if err := loadKprobeObjects(&objs, nil); err != nil {
+	objs := bpfObjects{}
+	if err := loadBpfObjects(&objs, nil); err != nil {
 		log.Fatalf("loading objects: %v", err)
 	}
 	defer objs.Close()
 
-	// Open a Kprobe at the entry point of the kernel function and attach the
-	// pre-compiled program. Each time the kernel function enters, the program
-	// will increment the execution counter by 1. The read loop below polls this
-	// map value once per second.
-	kp, err := link.Kprobe(fn, objs.KprobeExecve, nil)
+	// AttachTracing links a tracing (fentry/fexit/fmod_ret) BPF program or a
+	// BTF-powered raw tracepoint (tp_btf) BPF Program to a BPF hook defined in kernel modules.
+	link, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.TcpConnect})
 	if err != nil {
-		log.Fatalf("opening kprobe: %s", err)
+		log.Fatal(err)
 	}
-	defer kp.Close()
+	defer link.Close()
 
-	// Read loop reporting the total amount of times the kernel
-	// function was entered, once per second.
-	ticker := time.NewTicker(1 * time.Second)
-	defer ticker.Stop()
+	rd, err := ringbuf.NewReader(objs.bpfMaps.Events)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rd.Close()
 
-	log.Println("Waiting for events..")
+	go func() {
+		<-stopper
 
-	for range ticker.C {
-		var value uint64
-		if err := objs.KprobeMap.Lookup(mapKey, &value); err != nil {
-			log.Fatalf("reading map: %v", err)
+		if err := rd.Close(); err != nil {
+			log.Fatalf("Closing ringbuff reader: %v", err)
 		}
-		log.Printf("%s called %d times\n", fn, value)
+	}()
+
+	log.Printf("%-16s %-15s %-6s -> %-15s %-6s",
+		"Comm",
+		"Src addr",
+		"Port",
+		"Dest addr",
+		"Port",
+	)
+
+	var event bpfEvent
+	for {
+		record, err := rd.Read()
+		if err != nil {
+			if err != nil {
+				if errors.Is(err, ringbuf.ErrClosed) {
+					log.Println("received signal, exiting...")
+					return
+				}
+				log.Printf("Reading from ringbuff: %s", err)
+				continue
+			}
+		}
+
+		if err := binary.Read(bytes.NewBuffer(record.RawSample), binary.BigEndian, &event); err != nil {
+			log.Printf("parsing ringbuf event: %s", err)
+			continue
+		}
+		log.Printf("%-16s %-15s %-6d -> %-15s %-6d",
+			event.Comm,
+			intToIPv4(event.Saddr),
+			event.Sport,
+			intToIPv4(event.Daddr),
+			event.Dport,
+		)
 	}
+
+}
+
+func intToIPv4(ipNum uint32) net.IP {
+	ip := make(net.IP, 4)
+	binary.BigEndian.PutUint32(ip, ipNum)
+	return ip
 }
