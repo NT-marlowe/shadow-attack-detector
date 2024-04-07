@@ -11,7 +11,7 @@ char __license[] SEC("license") = "Dual MIT/GPL";
 
 struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
-	__uint(max_entries, 1 << 24);
+	__uint(max_entries, 1 << 12);
 } events SEC(".maps");
 
 struct event {
