@@ -27,32 +27,34 @@ char __license[] SEC("license") = "Dual MIT/GPL";
  * It only contains the fields up until skc_family that are accessed in the
  * program, with padding to match the kernel's declaration.
  */
+
 struct sock_common {
 	union {
 		struct {
+			// skc_daddr is destination IP address
 			__be32 skc_daddr;
+			// skc_rcv_saddr is the source IP address
 			__be32 skc_rcv_saddr;
 		};
 	};
 	union {
-		// Padding out union skc_hash.
-		__u32 _;
-	};
-	union {
 		struct {
+			// skc_dport is the destination TCP/UDP port
 			__be16 skc_dport;
+			// skc_num is the source TCP/UDP port
 			__u16 skc_num;
 		};
 	};
+	// skc_family is the network address family (2 for IPV4)
 	short unsigned int skc_family;
-};
+} __attribute__((preserve_access_index));
 
 /**
  * struct sock reflects the start of the kernel's struct sock.
  */
 struct sock {
 	struct sock_common __sk_common;
-};
+} __attribute__((preserve_access_index));
 
 struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
