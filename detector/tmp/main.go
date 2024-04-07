@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"log"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
@@ -30,7 +31,7 @@ func main() {
 
 	// AttachTracing links a tracing (fentry/fexit/fmod_ret) BPF program or a
 	// BTF-powered raw tracepoint (tp_btf) BPF Program to a BPF hook defined in kernel modules.
-	link, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.SysClose})
+	link, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.TcpConnect})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,9 +51,12 @@ func main() {
 		}
 	}()
 
-	log.Printf("%-16s %-15s",
+	log.Printf("%-16s %-15s %-6s -> %-15s %-6s",
 		"Comm",
-		"Fd",
+		"Src addr",
+		"Port",
+		"Dest addr",
+		"Port",
 	)
 
 	var event bpfEvent
@@ -71,10 +75,19 @@ func main() {
 			log.Printf("parsing ringbuf event: %s", err)
 			continue
 		}
-		log.Printf("%-16s %-15v",
+		log.Printf("%-16s %-15s %-6d -> %-15s %-6d",
 			event.Comm,
-			event.Fd,
+			intToIPv4(event.Saddr),
+			event.Sport,
+			intToIPv4(event.Daddr),
+			event.Dport,
 		)
 	}
 
+}
+
+func intToIPv4(ipNum uint32) net.IP {
+	ip := make(net.IP, 4)
+	binary.BigEndian.PutUint32(ip, ipNum)
+	return ip
 }
