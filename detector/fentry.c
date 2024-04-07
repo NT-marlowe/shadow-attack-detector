@@ -20,7 +20,7 @@ struct event {
 };
 struct event *unused __attribute__((unused));
 
-SEC("fentry/sys_close")
+SEC("fentry/__x64_sys_close")
 int BPF_PROG(sys_close, unsigned int fd) {
 	struct event *close_event;
 	close_event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
