@@ -20,6 +20,7 @@ struct event {
 };
 struct event *unused __attribute__((unused));
 
+// Needs to be architecture-specific kernel function
 SEC("fentry/__x64_sys_close")
 int BPF_PROG(sys_close, unsigned int fd) {
 	struct event *close_event;
