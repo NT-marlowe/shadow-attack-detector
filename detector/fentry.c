@@ -20,19 +20,15 @@ struct event {
 };
 struct event *unused __attribute__((unused));
 
-struct open_how {
-	__u64 flags;
-	__u64 mode;
-	__u64 resolve;
-};
-
 typedef short unsigned int umode_t;
 
 SEC("fexit/do_sys_openat2")
 int BPF_PROG(
 	sys_openat, int dfd, const char *filename, struct open_how *how, long ret) {
-	bpf_printk("do_sys_open");
 	if (ret < 0) {
+		// little confidence: do_sys_openat2 returns `-errno` when it fails to
+		// open a file. so if you see e.g. `sys_open failed, ret = -2`, it means
+		// this funciton fails with error 2.
 		bpf_printk("sys_open failed, ret = %ld\n", ret);
 		return 0;
 	}

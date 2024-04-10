@@ -23,6 +23,12 @@ typedef __u32 __be32;
 typedef __u64 __be64;
 typedef __u32 __wsum;
 
+struct open_how {
+	__u64 flags;
+	__u64 mode;
+	__u64 resolve;
+};
+
 #include "bpf_helpers.h"
 
 enum bpf_map_type {
