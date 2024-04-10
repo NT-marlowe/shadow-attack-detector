@@ -1,4 +1,5 @@
-// This is a compact version of `vmlinux.h` to be used in the examples using C code.
+// This is a compact version of `vmlinux.h` to be used in the examples using C
+// code.
 
 #pragma once
 
@@ -57,10 +58,10 @@ enum bpf_map_type {
 };
 
 enum xdp_action {
-	XDP_ABORTED = 0,
-	XDP_DROP = 1,
-	XDP_PASS = 2,
-	XDP_TX = 3,
+	XDP_ABORTED  = 0,
+	XDP_DROP     = 1,
+	XDP_PASS     = 2,
+	XDP_TX       = 3,
 	XDP_REDIRECT = 4,
 };
 
@@ -84,8 +85,8 @@ struct ethhdr {
 };
 
 struct iphdr {
-	__u8 ihl: 4;
-	__u8 version: 4;
+	__u8 ihl : 4;
+	__u8 version : 4;
 	__u8 tos;
 	__be16 tot_len;
 	__be16 id;
@@ -113,8 +114,8 @@ enum {
 #if defined(__TARGET_ARCH_x86)
 struct pt_regs {
 	/*
-	 * C ABI says these regs are callee-preserved. They aren't saved on kernel entry
-	 * unless syscall needs a complete, fully filled "struct pt_regs".
+	 * C ABI says these regs are callee-preserved. They aren't saved on kernel
+	 * entry unless syscall needs a complete, fully filled "struct pt_regs".
 	 */
 	unsigned long r15;
 	unsigned long r14;
