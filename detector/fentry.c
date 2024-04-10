@@ -20,8 +20,18 @@ struct event {
 };
 struct event *unused __attribute__((unused));
 
-SEC("fexit/__x64_sys_openat")
-int BPF_PROG(sys_openat, long ret) {
+struct open_how {
+	__u64 flags;
+	__u64 mode;
+	__u64 resolve;
+};
+
+typedef short unsigned int umode_t;
+
+SEC("fexit/do_sys_openat2")
+int BPF_PROG(
+	sys_openat, int dfd, const char *filename, struct open_how *how, long ret) {
+	bpf_printk("do_sys_open");
 	if (ret < 0) {
 		bpf_printk("sys_open failed, ret = %ld\n", ret);
 		return 0;
