@@ -30,11 +30,17 @@ func main() {
 
 	// AttachTracing links a tracing (fentry/fexit/fmod_ret) BPF program or a
 	// BTF-powered raw tracepoint (tp_btf) BPF Program to a BPF hook defined in kernel modules.
-	link, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.CloseFd})
+	link1, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.CloseFd})
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer link.Close()
+	defer link1.Close()
+
+	link2, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.DoSysOepnatExit})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer link2.Close()
 
 	rd, err := ringbuf.NewReader(objs.bpfMaps.Events)
 	if err != nil {
@@ -50,7 +56,8 @@ func main() {
 		}
 	}()
 
-	log.Printf("%-16s %-15s",
+	log.Printf("%-16s %-16s %-15s",
+		"Sys",
 		"Comm",
 		"Fd",
 	)
@@ -71,10 +78,23 @@ func main() {
 			log.Printf("parsing ringbuf event: %s", err)
 			continue
 		}
-		log.Printf("%-16s %-15v",
+
+		log.Printf("%-16s %-15v %-16s",
 			event.Comm,
 			event.Fd,
+			getSysCallName(event.SysType),
 		)
 	}
 
+}
+
+func getSysCallName(sysType uint8) string {
+	switch sysType {
+	case 0:
+		return "open"
+	case 1:
+		return "close"
+	default:
+		return "unknown"
+	}
 }
