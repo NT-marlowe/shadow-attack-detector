@@ -30,7 +30,7 @@ func main() {
 
 	// AttachTracing links a tracing (fentry/fexit/fmod_ret) BPF program or a
 	// BTF-powered raw tracepoint (tp_btf) BPF Program to a BPF hook defined in kernel modules.
-	link, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.SysOpenat})
+	link, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.DoSysOepnatExit})
 	if err != nil {
 		log.Fatal(err)
 	}

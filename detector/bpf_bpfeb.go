@@ -58,7 +58,7 @@ type bpfSpecs struct {
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type bpfProgramSpecs struct {
-	SysOpenat *ebpf.ProgramSpec `ebpf:"sys_openat"`
+	DoSysOepnatExit *ebpf.ProgramSpec `ebpf:"do_sys_oepnat_exit"`
 }
 
 // bpfMapSpecs contains maps before they are loaded into the kernel.
@@ -100,12 +100,12 @@ func (m *bpfMaps) Close() error {
 //
 // It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.
 type bpfPrograms struct {
-	SysOpenat *ebpf.Program `ebpf:"sys_openat"`
+	DoSysOepnatExit *ebpf.Program `ebpf:"do_sys_oepnat_exit"`
 }
 
 func (p *bpfPrograms) Close() error {
 	return _BpfClose(
-		p.SysOpenat,
+		p.DoSysOepnatExit,
 	)
 }
 
