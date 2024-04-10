@@ -53,6 +53,7 @@ int BPF_PROG(close_fd, unsigned int fd) {
 	struct event *close_event;
 	close_event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
 	if (!close_event) {
+		bpf_printk("sys_open failed, ret = %ld\n", fd);
 		return 0;
 	}
 
