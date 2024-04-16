@@ -39,7 +39,7 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 	if (!open_event) {
 		return 0;
 	}
-	__u32 fd = ret;
+	u32 fd = ret;
 
 	open_event->sys_type = SYS_OPEN;
 	open_event->fd       = fd;

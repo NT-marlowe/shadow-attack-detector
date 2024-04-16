@@ -56,9 +56,9 @@ func main() {
 		}
 	}()
 
-	log.Printf("%-16s %-16s %-15s",
-		"Sys",
+	log.Printf("%-16s %-16s %-10s",
 		"Comm",
+		"Sys",
 		"Fd",
 	)
 
@@ -79,10 +79,10 @@ func main() {
 			continue
 		}
 
-		log.Printf("%-16s %-15v %-16s",
-			event.Comm,
-			event.Fd,
+		log.Printf("%-16s %-16s %-10d",
+			convertBytesToString(event.Comm[:]),
 			getSysCallName(event.SysType),
+			event.Fd,
 		)
 	}
 
@@ -97,4 +97,15 @@ func getSysCallName(sysType uint8) string {
 	default:
 		return "unknown"
 	}
+}
+
+func convertBytesToString(bytes []uint8) string {
+	commStr := ""
+	for _, b := range bytes[:16] {
+		if b == 0 {
+			break
+		}
+		commStr += string(b)
+	}
+	return commStr
 }
