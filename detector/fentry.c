@@ -17,9 +17,10 @@ struct {
 } events SEC(".maps");
 
 struct event {
-	u8 sys_type;
 	u8 comm[TASK_COMM_LEN];
+	u8 sys_call_enum;
 	u32 fd;
+	u32 pid;
 };
 struct event *unused __attribute__((unused));
 
@@ -41,29 +42,31 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 	}
 	u32 fd = ret;
 
-	open_event->sys_type = SYS_OPEN;
-	open_event->fd       = fd;
 	bpf_get_current_comm(&open_event->comm, TASK_COMM_LEN);
+
+	open_event->sys_call_enum = SYS_OPEN;
+	open_event->fd            = fd;
+	open_event->pid           = bpf_get_current_pid_tgid() >> 32;
 
 	bpf_ringbuf_submit(open_event, 0);
 	return 0;
 }
 
 // Needs to be architecture-specific kernel function
-SEC("fentry/close_fd")
-int BPF_PROG(close_fd, unsigned int fd) {
-	struct event *close_event;
-	close_event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
-	if (!close_event) {
-		bpf_printk("sys_open failed, ret = %ld\n", fd);
-		return 0;
-	}
+// SEC("fentry/close_fd")
+// int BPF_PROG(close_fd, unsigned int fd) {
+// 	struct event *close_event;
+// 	close_event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
+// 	if (!close_event) {
+// 		bpf_printk("sys_open failed, ret = %ld\n", fd);
+// 		return 0;
+// 	}
 
-	close_event->sys_type = SYS_CLOSE;
-	close_event->fd       = fd;
-	bpf_get_current_comm(&close_event->comm, TASK_COMM_LEN);
+// 	close_event->sys_type = SYS_CLOSE;
+// 	close_event->fd       = fd;
+// 	bpf_get_current_comm(&close_event->comm, TASK_COMM_LEN);
 
-	bpf_ringbuf_submit(close_event, 0);
+// 	bpf_ringbuf_submit(close_event, 0);
 
-	return 0;
-}
+// 	return 0;
+// }

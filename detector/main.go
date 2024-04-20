@@ -30,11 +30,11 @@ func main() {
 
 	// AttachTracing links a tracing (fentry/fexit/fmod_ret) BPF program or a
 	// BTF-powered raw tracepoint (tp_btf) BPF Program to a BPF hook defined in kernel modules.
-	link1, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.CloseFd})
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer link1.Close()
+	// link1, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.CloseFd})
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// defer link1.Close()
 
 	link2, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.DoSysOepnatExit})
 	if err != nil {
@@ -56,10 +56,11 @@ func main() {
 		}
 	}()
 
-	log.Printf("%-16s %-16s %-10s",
+	log.Printf("%-16s %-16s %-16s %-10s",
 		"Comm",
 		"Sys",
 		"Fd",
+		"Pid",
 	)
 
 	var event bpfEvent
@@ -79,10 +80,11 @@ func main() {
 			continue
 		}
 
-		log.Printf("%-16s %-16s %-10d",
+		log.Printf("%-16s %-16s %-16d %-10d",
 			convertBytesToString(event.Comm[:]),
-			getSysCallName(event.SysType),
+			getSysCallName(event.SysCallEnum),
 			event.Fd,
+			event.Pid,
 		)
 	}
 
