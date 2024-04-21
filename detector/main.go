@@ -56,7 +56,7 @@ func main() {
 		}
 	}()
 
-	// m := make(map[uint32]map[uint32]bool)
+	fdPidMap := make(map[uint32]map[uint32]bool)
 
 	log.Printf("%-16s %-16s %-16s %-10s",
 		"Comm",
@@ -84,6 +84,14 @@ func main() {
 
 		fd := event.Fd
 		pid := event.Pid
+
+		if _, ok := fdPidMap[fd]; !ok {
+			fdPidMap[fd] = make(map[uint32]bool)
+			fdPidMap[fd][pid] = true
+			log.Printf("New fd opened, num of fds: %d", len(fdPidMap))
+		} else {
+			log.Printf("Already opened fd, num of pids: %d", len(fdPidMap[fd]))
+		}
 
 		log.Printf("%-16s %-16s %-16d %-10d",
 			convertBytesToString(event.Comm[:]),
