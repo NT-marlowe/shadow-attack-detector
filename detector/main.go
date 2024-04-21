@@ -56,8 +56,6 @@ func main() {
 		}
 	}()
 
-	mapFdPid := make(Map2Dim[uint32, uint32, bool])
-
 	log.Printf("%-16s %-16s %-16s %-10s",
 		"Comm",
 		"Sys",
@@ -65,6 +63,7 @@ func main() {
 		"Pid",
 	)
 
+	mapFdPid := make(Map2Dim[uint32, uint32, bool])
 	var event bpfEvent
 	for {
 		record, err := rd.Read()
