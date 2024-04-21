@@ -28,9 +28,6 @@ SEC("fexit/do_sys_openat2")
 int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 	struct open_how *how, long ret) {
 	if (ret < 0) {
-		// little confidence: do_sys_openat2 returns `-errno` when it fails to
-		// open a file. so if you see e.g. `sys_open failed, ret = -2`, it means
-		// this funciton fails with error 2.
 		bpf_printk("sys_open failed, ret = %ld\n", ret);
 		return 0;
 	}

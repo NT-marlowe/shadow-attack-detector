@@ -28,8 +28,6 @@ func main() {
 	}
 	defer objs.Close()
 
-	// AttachTracing links a tracing (fentry/fexit/fmod_ret) BPF program or a
-	// BTF-powered raw tracepoint (tp_btf) BPF Program to a BPF hook defined in kernel modules.
 	link1, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.CloseFd})
 	if err != nil {
 		log.Fatal(err)
