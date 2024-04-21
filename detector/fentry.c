@@ -52,21 +52,22 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 	return 0;
 }
 
-// Needs to be architecture-specific kernel function
-// SEC("fentry/close_fd")
-// int BPF_PROG(close_fd, unsigned int fd) {
-// 	struct event *close_event;
-// 	close_event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
-// 	if (!close_event) {
-// 		bpf_printk("sys_open failed, ret = %ld\n", fd);
-// 		return 0;
-// 	}
+SEC("fentry/close_fd")
+int BPF_PROG(close_fd, unsigned int fd) {
+	struct event *close_event;
+	close_event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
+	if (!close_event) {
+		bpf_printk("sys_open failed, ret = %ld\n", fd);
+		return 0;
+	}
 
-// 	close_event->sys_type = SYS_CLOSE;
-// 	close_event->fd       = fd;
-// 	bpf_get_current_comm(&close_event->comm, TASK_COMM_LEN);
+	bpf_get_current_comm(&close_event->comm, TASK_COMM_LEN);
 
-// 	bpf_ringbuf_submit(close_event, 0);
+	close_event->sys_call_enum = SYS_CLOSE;
+	close_event->fd            = fd;
+	close_event->pid           = bpf_get_current_pid_tgid() >> 32;
 
-// 	return 0;
-// }
+	bpf_ringbuf_submit(close_event, 0);
+
+	return 0;
+}

@@ -30,11 +30,11 @@ func main() {
 
 	// AttachTracing links a tracing (fentry/fexit/fmod_ret) BPF program or a
 	// BTF-powered raw tracepoint (tp_btf) BPF Program to a BPF hook defined in kernel modules.
-	// link1, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.CloseFd})
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer link1.Close()
+	link1, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.CloseFd})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer link1.Close()
 
 	link2, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.DoSysOepnatExit})
 	if err != nil {
@@ -86,13 +86,15 @@ func main() {
 		fd := event.Fd
 		pid := event.Pid
 
-		if _, ok := mapFdPid[fd]; !ok {
+		if !mapFdPid.HasKey1(fd) {
 			mapFdPid[fd] = make(map[uint32]bool)
 			mapFdPid[fd][pid] = true
 			log.Printf("New fd opened, num of fds: %d", len(mapFdPid))
-		} else {
+		} else if !mapFdPid.HasKey2(fd, pid) {
 			log.Printf("Already opened fd, num of pids: %d", len(mapFdPid[fd]))
 		}
+		// This block means that the same pid handles the same fd.
+		// Therefore that process is regarded as legitimate.
 
 		log.Printf("%-16s %-16s %-16d %-10d",
 			convertBytesToString(event.Comm[:]),
