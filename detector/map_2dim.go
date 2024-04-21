@@ -10,3 +10,16 @@ func (m Map2Dim[K1, K2, V]) CountAllElements() int {
 	}
 	return count
 }
+
+func (m Map2Dim[K1, K2, V]) HasKey1(key K1) bool {
+	_, ok := m[key]
+	return ok
+}
+
+func (m Map2Dim[K1, K2, V]) HasKey2(key1 K1, key2 K2) bool {
+	if _, ok := m[key1]; !ok {
+		return false
+	}
+	_, ok := m[key1][key2]
+	return ok
+}
