@@ -71,6 +71,8 @@ func main() {
 		if err != nil {
 			if errors.Is(err, ringbuf.ErrClosed) {
 				log.Println("received signal, exiting...")
+				log.Printf("Total number of fds opened: %d", len(fdPidMap))
+				log.Printf("Total number of entries in map: %d", countMap2Dim(fdPidMap))
 				return
 			}
 			log.Printf("Reading from ringbuff: %s", err)
