@@ -56,6 +56,8 @@ func main() {
 		}
 	}()
 
+	// m := make(map[uint32]map[uint32]bool)
+
 	log.Printf("%-16s %-16s %-16s %-10s",
 		"Comm",
 		"Sys",
@@ -80,12 +82,16 @@ func main() {
 			continue
 		}
 
+		fd := event.Fd
+		pid := event.Pid
+
 		log.Printf("%-16s %-16s %-16d %-10d",
 			convertBytesToString(event.Comm[:]),
 			getSysCallName(event.SysCallEnum),
-			event.Fd,
-			event.Pid,
+			fd,
+			pid,
 		)
+
 	}
 
 }
