@@ -63,7 +63,7 @@ func main() {
 
 	var event bpfEvent
 	mapFdPid := make(Map2Dim[uint32, uint32, bool])
-	selfLoopCount := 0
+	nonLoopEdgeCount := 0
 	for {
 		record, err := rd.Read()
 		if err != nil {
@@ -92,7 +92,7 @@ func main() {
 
 		} else if !mapFdPid.HasKey2(fd, pid) {
 			mapFdPid[fd][pid] = true
-			selfLoopCount++
+			nonLoopEdgeCount++
 			log.Printf("Already opened fd, num of pids: %d", len(mapFdPid[fd]))
 		}
 		// This block means that the same pid handles the same fd.
