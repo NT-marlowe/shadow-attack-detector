@@ -56,7 +56,7 @@ func main() {
 		}
 	}()
 
-	fdPidMap := make(map[uint32]map[uint32]bool)
+	mapFdPid := make(Map2Dim[uint32, uint32, bool])
 
 	log.Printf("%-16s %-16s %-16s %-10s",
 		"Comm",
@@ -71,8 +71,8 @@ func main() {
 		if err != nil {
 			if errors.Is(err, ringbuf.ErrClosed) {
 				log.Println("received signal, exiting...")
-				log.Printf("Total number of fds opened: %d", len(fdPidMap))
-				log.Printf("Total number of entries in map: %d", countMap2Dim(fdPidMap))
+				log.Printf("Total number of fds opened: %d", len(mapFdPid))
+				log.Printf("Total number of entries in map: %d", mapFdPid.CountAllElements())
 				return
 			}
 			log.Printf("Reading from ringbuff: %s", err)
@@ -87,12 +87,12 @@ func main() {
 		fd := event.Fd
 		pid := event.Pid
 
-		if _, ok := fdPidMap[fd]; !ok {
-			fdPidMap[fd] = make(map[uint32]bool)
-			fdPidMap[fd][pid] = true
-			log.Printf("New fd opened, num of fds: %d", len(fdPidMap))
+		if _, ok := mapFdPid[fd]; !ok {
+			mapFdPid[fd] = make(map[uint32]bool)
+			mapFdPid[fd][pid] = true
+			log.Printf("New fd opened, num of fds: %d", len(mapFdPid))
 		} else {
-			log.Printf("Already opened fd, num of pids: %d", len(fdPidMap[fd]))
+			log.Printf("Already opened fd, num of pids: %d", len(mapFdPid[fd]))
 		}
 
 		log.Printf("%-16s %-16s %-16d %-10d",

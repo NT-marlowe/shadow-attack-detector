@@ -21,11 +21,3 @@ func convertBytesToString(bytes []uint8) string {
 	}
 	return commStr
 }
-
-func countMap2Dim(m map[uint32]map[uint32]bool) int {
-	count := 0
-	for _, v := range m {
-		count += len(v)
-	}
-	return count
-}
