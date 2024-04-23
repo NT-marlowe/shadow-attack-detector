@@ -1,6 +1,7 @@
 *.out
 *.txt
 foobar
+tmp*
 
 /benchmark/bin/*
 !/benchmark/bin/
