@@ -85,6 +85,8 @@ func main() {
 		fd := event.Fd
 		pid := event.Pid
 
+		log.Println("------------------------------------------------------------")
+		log.Printf("fd = %d, pid = %d", fd, pid)
 		if !mapFdPid.HasKey1(fd) {
 			mapFdPid[fd] = make(map[uint32]bool)
 			mapFdPid[fd][pid] = true
@@ -94,6 +96,7 @@ func main() {
 			mapFdPid[fd][pid] = true
 			nonLoopEdgeCount++
 			log.Printf("Already opened fd, num of pids: %d", len(mapFdPid[fd]))
+			log.Printf("map[%d] = %v", fd, mapFdPid[fd])
 		}
 		// This block means that the same pid handles the same fd.
 		// Therefore that process is regarded as legitimate.
