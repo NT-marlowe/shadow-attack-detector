@@ -1,10 +1,15 @@
 package main
 
+const (
+	OPEN uint8 = iota
+	CLOSE
+)
+
 func getSysCallName(sysType uint8) string {
 	switch sysType {
-	case 0:
+	case OPEN:
 		return "open"
-	case 1:
+	case CLOSE:
 		return "close"
 	default:
 		return "unknown"
