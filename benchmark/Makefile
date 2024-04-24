@@ -26,6 +26,10 @@ $(SERVER_TARGETS): $(SERVER_COMMONS)
 .PHONY: run
 .PHONY: clean
 run: $(TARGET)
+	./$(BIN_DIR)/open_server &
+	sleep 0.5
+	./$(BIN_DIR)/close_server &
+	sleep 0.5
 	./$(BIN_DIR)/$(TARGET)
 clean:
 	rm -f $(BIN_DIR)/*
