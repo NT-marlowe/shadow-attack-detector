@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"github.com/cilium/ebpf/link"
+	"github.com/cilium/ebpf/ringbuf"
+	"github.com/cilium/ebpf/rlimit"
+	// "golang.org/x/exp/slices"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-
-	"github.com/cilium/ebpf/link"
-	"github.com/cilium/ebpf/ringbuf"
-	"github.com/cilium/ebpf/rlimit"
 )
 
 func main() {
@@ -84,29 +84,37 @@ func main() {
 
 		fd := event.Fd
 		pid := event.Pid
+		comm := convertBytesToString(event.Comm[:])
+		// sample := []string{"gopls", "irqbalance", "snapd", "sshd", "systemd-resolve"}
+		// if slices.Contains(sample, comm) {
+		// 	continue
+		// }
 
-		log.Println("------------------------------------------------------------")
-		log.Printf("fd = %d, pid = %d", fd, pid)
+		// log.Println("------------------------------------------------------------")
+		// log.Printf("fd = %d, pid = %d", fd, pid)
 		if !mapFdPid.HasKey1(fd) {
 			mapFdPid[fd] = make(map[uint32]bool)
 			mapFdPid[fd][pid] = true
-			log.Printf("New fd opened, num of fds: %d", len(mapFdPid))
+			log.Printf("New fd %d %s by %s (%d)", fd, getSysCallName(event.SysCallEnum), comm, pid)
+			log.Println("------------------------------------------------------------")
 
 		} else if !mapFdPid.HasKey2(fd, pid) {
 			mapFdPid[fd][pid] = true
 			nonLoopEdgeCount++
-			log.Printf("Already opened fd, num of pids: %d", len(mapFdPid[fd]))
+			// log.Printf("Already opened fd, num of pids: %d", len(mapFdPid[fd]))
+			log.Printf("Already opened fd %d was %s by %s", fd, getSysCallName(event.SysCallEnum), comm)
 			log.Printf("map[%d] = %v", fd, mapFdPid[fd])
+			log.Println("------------------------------------------------------------")
 		}
 		// This block means that the same pid handles the same fd.
 		// Therefore that process is regarded as legitimate.
 
-		log.Printf("%-16s %-16s %-16d %-10d",
-			convertBytesToString(event.Comm[:]),
-			getSysCallName(event.SysCallEnum),
-			fd,
-			pid,
-		)
+		// log.Printf("%-16s %-16s %-16d %-10d",
+		// 	comm,
+		// 	getSysCallName(event.SysCallEnum),
+		// 	fd,
+		// 	pid,
+		// )
 
 	}
 
