@@ -7,7 +7,6 @@ import (
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/ringbuf"
 	"github.com/cilium/ebpf/rlimit"
-	// "golang.org/x/exp/slices"
 	"log"
 	"os"
 	"os/signal"
@@ -62,7 +61,7 @@ func main() {
 	)
 
 	var event bpfEvent
-	mapFdPid := make(Map2Dim[uint32, uint32, bool])
+	mapFdPid := make(Map2Dim[uint32, string, bool])
 	nonLoopEdgeCount := 0
 	for {
 		record, err := rd.Read()
@@ -71,6 +70,7 @@ func main() {
 				log.Println("received signal, exiting...")
 				log.Printf("Total number of fds opened: %d", len(mapFdPid))
 				log.Printf("Total number of entries in map: %d", mapFdPid.CountAllElements())
+				log.Printf("Total number of non-loop edges: %d", nonLoopEdgeCount)
 				return
 			}
 			log.Printf("Reading from ringbuff: %s", err)
@@ -83,23 +83,19 @@ func main() {
 		}
 
 		fd := event.Fd
-		pid := event.Pid
+		// pid := event.Pid
 		comm := convertBytesToString(event.Comm[:])
-		// sample := []string{"gopls", "irqbalance", "snapd", "sshd", "systemd-resolve"}
-		// if slices.Contains(sample, comm) {
-		// 	continue
-		// }
 
 		// log.Println("------------------------------------------------------------")
 		// log.Printf("fd = %d, pid = %d", fd, pid)
 		if !mapFdPid.HasKey1(fd) {
-			mapFdPid[fd] = make(map[uint32]bool)
-			mapFdPid[fd][pid] = true
-			log.Printf("New fd %d %s by %s (%d)", fd, getSysCallName(event.SysCallEnum), comm, pid)
-			log.Println("------------------------------------------------------------")
+			mapFdPid[fd] = make(map[string]bool)
+			mapFdPid[fd][comm] = true
+			// log.Printf("New fd %d %s by %s (%d)", fd, getSysCallName(event.SysCallEnum), comm, pid)
+			// log.Println("------------------------------------------------------------")
 
-		} else if !mapFdPid.HasKey2(fd, pid) {
-			mapFdPid[fd][pid] = true
+		} else if !mapFdPid.HasKey2(fd, comm) {
+			mapFdPid[fd][comm] = true
 			nonLoopEdgeCount++
 			// log.Printf("Already opened fd, num of pids: %d", len(mapFdPid[fd]))
 			log.Printf("Already opened fd %d was %s by %s", fd, getSysCallName(event.SysCallEnum), comm)
