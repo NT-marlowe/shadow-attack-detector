@@ -15,7 +15,8 @@ int SPC_close(const int target_fd) {
 	server_addr.sun_family = AF_UNIX;
 	strcpy(server_addr.sun_path, CLOSE_SOCKET_PATH);
 
-	if (connect(socket_fd, (struct sockaddr *)&server_addr, sizeof(struct sockaddr_un)) == -1) {
+	if (connect(socket_fd, (struct sockaddr *)&server_addr,
+			sizeof(struct sockaddr_un)) == -1) {
 		perror("connect");
 		exit(EXIT_FAILURE);
 	}

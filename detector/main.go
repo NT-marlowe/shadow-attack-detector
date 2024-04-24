@@ -84,6 +84,11 @@ func main() {
 
 		fd := event.Fd
 		pid := event.Pid
+		// comm := convertBytesToString(event.Comm[:])
+
+		// if comm != "open_server" && comm != "close_server" {
+		// continue
+		// }
 
 		log.Println("------------------------------------------------------------")
 		log.Printf("fd = %d, pid = %d", fd, pid)
