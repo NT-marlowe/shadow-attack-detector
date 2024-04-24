@@ -87,6 +87,10 @@ func main() {
 		comm := convertBytesToString(event.Comm[:])
 		tmpKey := StringUintKey{comm, pid}
 
+		// if comm != "open_server" && comm != "close_server" {
+		// 	continue
+		// }
+
 		// log.Println("------------------------------------------------------------")
 		// log.Printf("fd = %d, pid = %d", fd, pid)
 		if !mapFdPid.HasKey1(fd) {
