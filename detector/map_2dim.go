@@ -23,3 +23,8 @@ func (m Map2Dim[K1, K2, V]) HasKey2(key1 K1, key2 K2) bool {
 	_, ok := m[key1][key2]
 	return ok
 }
+
+type StringUintKey struct {
+	Key1 string
+	Key2 uint32
+}

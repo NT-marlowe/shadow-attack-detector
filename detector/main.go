@@ -61,7 +61,7 @@ func main() {
 	)
 
 	var event bpfEvent
-	mapFdPid := make(Map2Dim[uint32, string, bool])
+	mapFdPid := make(Map2Dim[uint32, StringUintKey, bool])
 	nonLoopEdgeCount := 0
 	for {
 		record, err := rd.Read()
@@ -83,19 +83,20 @@ func main() {
 		}
 
 		fd := event.Fd
-		// pid := event.Pid
+		pid := event.Pid
 		comm := convertBytesToString(event.Comm[:])
+		tmpKey := StringUintKey{comm, pid}
 
 		// log.Println("------------------------------------------------------------")
 		// log.Printf("fd = %d, pid = %d", fd, pid)
 		if !mapFdPid.HasKey1(fd) {
-			mapFdPid[fd] = make(map[string]bool)
-			mapFdPid[fd][comm] = true
+			mapFdPid[fd] = make(map[StringUintKey]bool)
+			mapFdPid[fd][tmpKey] = true
 			// log.Printf("New fd %d %s by %s (%d)", fd, getSysCallName(event.SysCallEnum), comm, pid)
 			// log.Println("------------------------------------------------------------")
 
-		} else if !mapFdPid.HasKey2(fd, comm) {
-			mapFdPid[fd][comm] = true
+		} else if !mapFdPid.HasKey2(fd, tmpKey) {
+			mapFdPid[fd][tmpKey] = true
 			nonLoopEdgeCount++
 			// log.Printf("Already opened fd, num of pids: %d", len(mapFdPid[fd]))
 			log.Printf("Already opened fd %d was %s by %s", fd, getSysCallName(event.SysCallEnum), comm)
