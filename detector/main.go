@@ -71,6 +71,7 @@ func main() {
 				log.Println("received signal, exiting...")
 				log.Printf("Total number of fds opened: %d", len(mapFdPid))
 				log.Printf("Total number of entries in map: %d", mapFdPid.CountAllElements())
+				log.Printf("Total number of non-loop edges: %d", nonLoopEdgeCount)
 				return
 			}
 			log.Printf("Reading from ringbuff: %s", err)
