@@ -62,12 +62,13 @@ int BPF_PROG(close_fd, unsigned int fd) {
 	}
 
 	char buf_path[MAX_PATH_LEN];
-
 	struct task_struct *task = (struct task_struct *)bpf_get_current_task();
-	struct path path         = task->files->fdt->fd[fd]->f_path;
-	// int ret                  = bpf_d_path(&path, buf_path, sizeof(buf_path));
+	// if (task == NULL) {
+	// return 0;
+	// }
+	// struct path path = task->files->fdt->fd[fd]->f_path;
 
-	// bpf_printk("path: %s\n", buf_path);
+	// int ret = bpf_d_path(&path, buf_path, sizeof(buf_path));
 
 	bpf_get_current_comm(&close_event->comm, TASK_COMM_LEN);
 
