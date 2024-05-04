@@ -28,17 +28,17 @@ func main() {
 	}
 	defer objs.Close()
 
-	link1, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.CloseFd})
+	linkClose, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.CloseFd})
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer link1.Close()
+	defer linkClose.Close()
 
-	link2, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.DoSysOepnatExit})
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer link2.Close()
+	// linkOpen, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.DoSysOepnatExit})
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// defer linkOpen.Close()
 
 	rd, err := ringbuf.NewReader(objs.bpfMaps.Events)
 	if err != nil {

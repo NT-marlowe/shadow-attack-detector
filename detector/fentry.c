@@ -24,30 +24,30 @@ struct event {
 };
 struct event *unused __attribute__((unused));
 
-SEC("fexit/do_sys_openat2")
-int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
-	struct open_how *how, long ret) {
-	if (ret < 0) {
-		bpf_printk("sys_open failed, ret = %ld\n", ret);
-		return 0;
-	}
+// SEC("fexit/do_sys_openat2")
+// int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
+// 	struct open_how *how, long ret) {
+// 	if (ret < 0) {
+// 		bpf_printk("sys_open failed, ret = %ld\n", ret);
+// 		return 0;
+// 	}
 
-	struct event *open_event;
-	open_event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
-	if (!open_event) {
-		return 0;
-	}
-	u32 fd = ret;
+// 	struct event *open_event;
+// 	open_event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
+// 	if (!open_event) {
+// 		return 0;
+// 	}
+// 	u32 fd = ret;
 
-	bpf_get_current_comm(&open_event->comm, TASK_COMM_LEN);
+// 	bpf_get_current_comm(&open_event->comm, TASK_COMM_LEN);
 
-	open_event->sys_call_enum = SYS_OPEN;
-	open_event->fd            = fd;
-	open_event->pid           = bpf_get_current_pid_tgid() >> 32;
+// 	open_event->sys_call_enum = SYS_OPEN;
+// 	open_event->fd            = fd;
+// 	open_event->pid           = bpf_get_current_pid_tgid() >> 32;
 
-	bpf_ringbuf_submit(open_event, 0);
-	return 0;
-}
+// 	bpf_ringbuf_submit(open_event, 0);
+// 	return 0;
+// }
 
 SEC("fentry/close_fd")
 int BPF_PROG(close_fd, unsigned int fd) {
