@@ -58,6 +58,8 @@ int BPF_PROG(close_fd, unsigned int fd) {
 		return 0;
 	}
 
+	struct task_struct *task = (struct task_struct *)bpf_get_current_task();
+
 	bpf_get_current_comm(&close_event->comm, TASK_COMM_LEN);
 
 	close_event->sys_call_enum = SYS_CLOSE;
