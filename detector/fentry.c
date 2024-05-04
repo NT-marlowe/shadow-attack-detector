@@ -7,6 +7,7 @@
 
 #include "./headers/vmlinux.h"
 
+#define MAX_PATH_LEN 256
 #define TASK_COMM_LEN 16
 #define SYS_OPEN 0
 #define SYS_CLOSE 1
@@ -60,8 +61,13 @@ int BPF_PROG(close_fd, unsigned int fd) {
 		return 0;
 	}
 
+	char buf_path[MAX_PATH_LEN];
+
 	struct task_struct *task = (struct task_struct *)bpf_get_current_task();
 	struct path path         = task->files->fdt->fd[fd]->f_path;
+	// int ret                  = bpf_d_path(&path, buf_path, sizeof(buf_path));
+
+	// bpf_printk("path: %s\n", buf_path);
 
 	bpf_get_current_comm(&close_event->comm, TASK_COMM_LEN);
 
