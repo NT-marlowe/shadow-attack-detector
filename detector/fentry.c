@@ -5,6 +5,8 @@
 #include "./headers/bpf_endian.h"
 #include "./headers/bpf_tracing.h"
 
+#include "./headers/vmlinux.h"
+
 #define TASK_COMM_LEN 16
 #define SYS_OPEN 0
 #define SYS_CLOSE 1
@@ -59,6 +61,7 @@ int BPF_PROG(close_fd, unsigned int fd) {
 	}
 
 	struct task_struct *task = (struct task_struct *)bpf_get_current_task();
+	task->files;
 
 	bpf_get_current_comm(&close_event->comm, TASK_COMM_LEN);
 
