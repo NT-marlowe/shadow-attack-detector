@@ -61,7 +61,7 @@ int BPF_PROG(close_fd, unsigned int fd) {
 	}
 
 	struct task_struct *task = (struct task_struct *)bpf_get_current_task();
-	task->files;
+	struct path path         = task->files->fdt->fd[fd]->f_path;
 
 	bpf_get_current_comm(&close_event->comm, TASK_COMM_LEN);
 
