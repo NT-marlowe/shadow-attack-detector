@@ -64,14 +64,16 @@ int BPF_PROG(close_fd, unsigned int fd) {
 
 	char buf_path[MAX_PATH_LEN];
 	struct task_struct *task = (void *)bpf_get_current_task_btf();
-	// struct path path         = task->files->fdt->fd[fd]->f_path;
-	struct file **fd_array = BPF_CORE_READ(task, files, fdt, fd);
-	// struct path path       = fd_array[fd]->f_path;
+	struct file **fd_array   = BPF_CORE_READ(task, files, fdt, fd);
 
-	// int ret = bpf_d_path(&path, buf_path, sizeof(buf_path));
-	// if (ret < 0) {
-	// 	return 0;
-	// }
+	struct file file;
+	bpf_core_read(
+		&file, sizeof(struct file), (fd_array + (sizeof(struct file) * fd)));
+	// bpf_printk("fd_array: %p\n", &file);
+
+	struct path path = BPF_CORE_READ(&file, f_path);
+
+	int ret = bpf_d_path(&path, buf_path, sizeof(buf_path));
 
 	bpf_get_current_comm(&close_event->comm, TASK_COMM_LEN);
 
