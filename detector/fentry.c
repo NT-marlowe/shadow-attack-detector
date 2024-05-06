@@ -1,5 +1,7 @@
 //go:build ignore
 
+#include <bpf/bpf_core_read.h>
+
 #include "./headers/common.h"
 
 #include "./headers/bpf_endian.h"
@@ -18,7 +20,6 @@ struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
 	__uint(max_entries, 1 << 12);
 } events SEC(".maps");
-
 struct event {
 	u8 comm[TASK_COMM_LEN];
 	u8 sys_call_enum;
@@ -62,13 +63,15 @@ int BPF_PROG(close_fd, unsigned int fd) {
 	}
 
 	char buf_path[MAX_PATH_LEN];
-	struct task_struct *task = (struct task_struct *)bpf_get_current_task();
-	// if (task == NULL) {
-	// return 0;
-	// }
-	// struct path path = task->files->fdt->fd[fd]->f_path;
+	struct task_struct *task = (void *)bpf_get_current_task_btf();
+	// struct path path         = task->files->fdt->fd[fd]->f_path;
+	struct file **fd_array = BPF_CORE_READ(task, files, fdt, fd);
+	// struct path path       = fd_array[fd]->f_path;
 
 	// int ret = bpf_d_path(&path, buf_path, sizeof(buf_path));
+	// if (ret < 0) {
+	// 	return 0;
+	// }
 
 	bpf_get_current_comm(&close_event->comm, TASK_COMM_LEN);
 
