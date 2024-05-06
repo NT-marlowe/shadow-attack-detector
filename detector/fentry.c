@@ -67,13 +67,17 @@ int BPF_PROG(close_fd, unsigned int fd) {
 	struct file **fd_array   = BPF_CORE_READ(task, files, fdt, fd);
 
 	struct file file;
+	bpf_printk("before, fd_array.f_version: %d\n", file.f_version);
 	bpf_core_read(
-		&file, sizeof(struct file), (fd_array + (sizeof(struct file) * fd)));
+		&file, sizeof(struct file), (fd_array + (sizeof(void *) * fd)));
+	// &file, sizeof(struct file), (fd_array));
+	// bpf_core_read(&file, sizeof(struct file), fd_array[fd]);
+	bpf_printk("after, fd_array.f_version: %d\n", file.f_version);
 	// bpf_printk("fd_array: %p\n", &file);
 
 	struct path path = BPF_CORE_READ(&file, f_path);
 
-	int ret = bpf_d_path(&path, buf_path, sizeof(buf_path));
+	// int ret = bpf_d_path(&path, buf_path, sizeof(buf_path));
 
 	bpf_get_current_comm(&close_event->comm, TASK_COMM_LEN);
 
