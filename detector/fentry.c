@@ -74,8 +74,14 @@ int BPF_PROG(close_fd, unsigned int fd) {
 	char buf[MAX_PATH_LEN];
 	for (uint i = 0; i < 10; i++) {
 		const unsigned char *dname = BPF_CORE_READ(dentry, d_name.name);
-		length += bpf_probe_read_kernel_str(
-			buf + length, MAX_PATH_LEN - length, dname);
+		char tmp[10];
+		// if (length + 1 >= MAX_PATH_LEN) {
+		// break;
+		// }
+		length += bpf_probe_read_kernel_str(tmp, sizeof(tmp), dname);
+		bpf_printk("length: %d", length);
+		// length += bpf_probe_read_kernel_str(
+		// buf + length, MAX_PATH_LEN - length, dname);
 		// buf[length++] = '/';
 		// bpf_snprintf(buf + length, MAX_PATH_LEN - length, "%s", "/", 1);
 
