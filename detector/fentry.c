@@ -71,27 +71,25 @@ int BPF_PROG(close_fd, unsigned int fd) {
 	struct dentry *dentry = BPF_CORE_READ(f, f_path.dentry);
 
 	uint length = 0;
-	char buf[MAX_PATH_LEN];
 	for (uint i = 0; i < 10; i++) {
 		const unsigned char *dname = BPF_CORE_READ(dentry, d_name.name);
-		char tmp[10];
-		// if (length + 1 >= MAX_PATH_LEN) {
-		// break;
+		const u32 hash             = BPF_CORE_READ(dentry, d_name.hash);
+		// char tmp[10];
+		// uint tmp_len = bpf_probe_read_kernel_str(tmp, sizeof(tmp), dname);
+		// if (length + tmp_len >= MAX_PATH_LEN) {
+		// 	break;
 		// }
-		length += bpf_probe_read_kernel_str(tmp, sizeof(tmp), dname);
-		bpf_printk("length: %d", length);
-		// length += bpf_probe_read_kernel_str(
-		// buf + length, MAX_PATH_LEN - length, dname);
-		// buf[length++] = '/';
-		// bpf_snprintf(buf + length, MAX_PATH_LEN - length, "%s", "/", 1);
-
+		bpf_printk("dname: %s, hash: %u", dname, hash);
+		// if (buf > 0 && tmp > 0) {
+		// bpf_probe_read_kernel(buf + length, tmp_len, tmp);
+		// length += tmp_len;
+		// }
 		struct dentry *parent = BPF_CORE_READ(dentry, d_parent);
 		if (parent == dentry) {
 			break;
 		}
 		dentry = parent;
 	}
-	bpf_printk("path: %s", buf);
 
 	bpf_get_current_comm(&close_event->comm, TASK_COMM_LEN);
 
