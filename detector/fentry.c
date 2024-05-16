@@ -63,18 +63,21 @@ int BPF_PROG(close_fd, unsigned int fd) {
 	}
 
 	struct task_struct *task = (struct task_struct *)bpf_get_current_task();
-	// struct file **fds        = task->files->fdt->fd;
-	struct file **fds = BPF_CORE_READ(task, files, fdt, fd);
-	struct file *f    = NULL;
+	struct file **fds        = BPF_CORE_READ(task, files, fdt, fd);
+	struct file *f           = NULL;
 	bpf_probe_read_kernel(&f, sizeof(f), &fds[fd]);
 	// const unsigned char *dname = BPF_CORE_READ(f, f_path.dentry,
 	// d_name.name); bpf_printk("dname: %s", dname);
 	struct dentry *dentry = BPF_CORE_READ(f, f_path.dentry);
-	// int path_len          = get_full_path(dentry, buf_path, MAX_PATH_LEN);
-	// bpf_printk("path: %s", buf_path);
-	for (int i = 0; i < 20; i++) {
+
+	uint length = 0;
+	char buf[MAX_PATH_LEN];
+	for (uint i = 0; i < 10; i++) {
 		const unsigned char *dname = BPF_CORE_READ(dentry, d_name.name);
-		bpf_printk("%d dname: %s", i, dname);
+		length += bpf_probe_read_kernel_str(
+			buf + length, MAX_PATH_LEN - length, dname);
+		// buf[length++] = '/';
+		// bpf_snprintf(buf + length, MAX_PATH_LEN - length, "%s", "/", 1);
 
 		struct dentry *parent = BPF_CORE_READ(dentry, d_parent);
 		if (parent == dentry) {
@@ -82,6 +85,7 @@ int BPF_PROG(close_fd, unsigned int fd) {
 		}
 		dentry = parent;
 	}
+	bpf_printk("path: %s", buf);
 
 	bpf_get_current_comm(&close_event->comm, TASK_COMM_LEN);
 
