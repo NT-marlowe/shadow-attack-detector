@@ -63,21 +63,13 @@ int BPF_PROG(close_fd, unsigned int fd) {
 	}
 
 	char buf_path[MAX_PATH_LEN];
-	struct task_struct *task = (void *)bpf_get_current_task_btf();
-	struct file **fd_array   = BPF_CORE_READ(task, files, fdt, fd);
-
-	struct file file;
-	bpf_printk("before, fd_array.f_version: %d\n", file.f_version);
-	bpf_core_read(
-		&file, sizeof(struct file), (fd_array + (sizeof(void *) * fd)));
-	// &file, sizeof(struct file), (fd_array));
-	// bpf_core_read(&file, sizeof(struct file), fd_array[fd]);
-	bpf_printk("after, fd_array.f_version: %d\n", file.f_version);
-	// bpf_printk("fd_array: %p\n", &file);
-
-	struct path path = BPF_CORE_READ(&file, f_path);
-
-	// int ret = bpf_d_path(&path, buf_path, sizeof(buf_path));
+	struct task_struct *task = (struct task_struct *)bpf_get_current_task();
+	// struct file **fds        = task->files->fdt->fd;
+	struct file **fds = BPF_CORE_READ(task, files, fdt, fd);
+	struct file *f    = NULL;
+	bpf_probe_read_kernel(&f, sizeof(f), &fds[fd]);
+	const unsigned char *dname = BPF_CORE_READ(f, f_path.dentry, d_name.name);
+	bpf_printk("dname: %s", dname);
 
 	bpf_get_current_comm(&close_event->comm, TASK_COMM_LEN);
 
