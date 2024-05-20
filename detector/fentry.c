@@ -11,8 +11,6 @@
 
 #define MAX_PATH_LEN 256
 #define TASK_COMM_LEN 16
-#define SYS_OPEN 0
-#define SYS_CLOSE 1
 
 char __license[] SEC("license") = "Dual MIT/GPL";
 
@@ -22,7 +20,7 @@ struct {
 } events SEC(".maps");
 struct event {
 	u8 comm[TASK_COMM_LEN];
-	u8 sys_call_enum;
+	u8 syscall_id;
 	u32 fd;
 	u32 pid;
 };
@@ -62,9 +60,9 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 
 	bpf_get_current_comm(&open_event->comm, TASK_COMM_LEN);
 
-	open_event->sys_call_enum = SYS_OPEN;
-	open_event->fd            = fd;
-	open_event->pid           = bpf_get_current_pid_tgid() >> 32;
+	open_event->syscall_id = OPEN;
+	open_event->fd         = fd;
+	open_event->pid        = bpf_get_current_pid_tgid() >> 32;
 
 	bpf_ringbuf_submit(open_event, 0);
 	return 0;
@@ -110,7 +108,7 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 
 // 	bpf_get_current_comm(&close_event->comm, TASK_COMM_LEN);
 
-// 	close_event->sys_call_enum = SYS_CLOSE;
+// close_event->syscall_id = CLOSE;
 // 	close_event->fd            = fd;
 // 	close_event->pid           = bpf_get_current_pid_tgid() >> 32;
 

@@ -13,11 +13,11 @@ import (
 )
 
 type bpfEvent struct {
-	Comm        [16]uint8
-	SysCallEnum uint8
-	_           [3]byte
-	Fd          uint32
-	Pid         uint32
+	Comm      [16]uint8
+	SyscallId uint8
+	_         [3]byte
+	Fd        uint32
+	Pid       uint32
 }
 
 // loadBpf returns the embedded CollectionSpec for bpf.

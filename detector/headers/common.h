@@ -29,6 +29,11 @@ typedef __u32 __wsum;
 // 	__u64 resolve;
 // };
 
+enum syscall_id {
+	OPEN  = 0,
+	CLOSE = 1,
+};
+
 #include "bpf_helpers.h"
 
 // enum bpf_map_type {

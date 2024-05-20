@@ -109,7 +109,7 @@ func main() {
 
 		log.Printf("%-16s %-16s %-16d %-10d",
 			convertBytesToString(event.Comm[:]),
-			getSysCallName(event.SysCallEnum),
+			getSysCallName(event.SyscallId),
 			fd,
 			pid,
 		)
