@@ -64,6 +64,8 @@ func main() {
 	var event bpfEvent
 	mapFdPid := make(Map2Dim[uint32, uint32, bool])
 	nonLoopEdgeCount := 0
+
+	absolutePath := ""
 	for {
 		record, err := rd.Read()
 		if err != nil {
@@ -83,10 +85,11 @@ func main() {
 			continue
 		}
 
+		dname := convertBytesToString(event.Dname[:])
 		log.Printf("%-16s %-16s %-16s %-10d",
 			convertBytesToString(event.Comm[:]),
 			getSysCallName(event.SyscallId),
-			convertBytesToString(event.Dname[:]),
+			dname,
 			event.Pid,
 		)
 

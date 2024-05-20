@@ -35,16 +35,6 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 		return 0;
 	}
 
-	struct event *open_event;
-	open_event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
-	if (!open_event) {
-		return 0;
-	}
-
-	bpf_get_current_comm(&open_event->comm, TASK_COMM_LEN);
-	open_event->syscall_id = OPEN;
-	open_event->pid        = bpf_get_current_pid_tgid() >> 32;
-
 	u32 fd = ret;
 
 	struct task_struct *task = (struct task_struct *)bpf_get_current_task();
@@ -53,19 +43,30 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 	bpf_probe_read_kernel(&f, sizeof(f), &fds[fd]);
 	struct dentry *dentry = BPF_CORE_READ(f, f_path.dentry);
 
+	struct event *open_event;
 	for (uint i = 0; i < 10; i++) {
 		const unsigned char *dname = BPF_CORE_READ(dentry, d_name.name);
 		const u32 hash             = BPF_CORE_READ(dentry, d_name.hash);
 		bpf_printk("dname: %s, hash: %u", dname, hash);
 
+		open_event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
+		if (!open_event) {
+			return 0;
+		}
+
+		bpf_get_current_comm(&open_event->comm, TASK_COMM_LEN);
+		open_event->syscall_id = OPEN;
+		open_event->pid        = bpf_get_current_pid_tgid() >> 32;
 		bpf_probe_read_kernel(open_event->dname, TASK_COMM_LEN, dname);
+
+		bpf_ringbuf_submit(open_event, 0);
+
 		struct dentry *parent = BPF_CORE_READ(dentry, d_parent);
 		if (parent == dentry) {
 			break;
 		}
 		dentry = parent;
 	}
-	bpf_ringbuf_submit(open_event, 0);
 	bpf_printk("--------------------------------");
 
 	// bpf_ringbuf_submit(open_event, 0);
