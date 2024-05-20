@@ -14,9 +14,9 @@ import (
 
 type bpfEvent struct {
 	Comm      [16]uint8
+	Dname     [16]uint8
 	SyscallId uint8
 	_         [3]byte
-	Fd        uint32
 	Pid       uint32
 }
 

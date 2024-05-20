@@ -11,6 +11,7 @@
 
 #define MAX_PATH_LEN 256
 #define TASK_COMM_LEN 16
+#define DNAME_LEN 16
 
 char __license[] SEC("license") = "Dual MIT/GPL";
 
@@ -20,8 +21,8 @@ struct {
 } events SEC(".maps");
 struct event {
 	u8 comm[TASK_COMM_LEN];
+	u8 dname[DNAME_LEN];
 	u8 syscall_id;
-	u32 fd;
 	u32 pid;
 };
 struct event *unused __attribute__((unused));
@@ -39,6 +40,11 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 	if (!open_event) {
 		return 0;
 	}
+
+	bpf_get_current_comm(&open_event->comm, TASK_COMM_LEN);
+	open_event->syscall_id = OPEN;
+	open_event->pid        = bpf_get_current_pid_tgid() >> 32;
+
 	u32 fd = ret;
 
 	struct task_struct *task = (struct task_struct *)bpf_get_current_task();
@@ -46,25 +52,23 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 	struct file *f           = NULL;
 	bpf_probe_read_kernel(&f, sizeof(f), &fds[fd]);
 	struct dentry *dentry = BPF_CORE_READ(f, f_path.dentry);
+
 	for (uint i = 0; i < 10; i++) {
 		const unsigned char *dname = BPF_CORE_READ(dentry, d_name.name);
 		const u32 hash             = BPF_CORE_READ(dentry, d_name.hash);
 		bpf_printk("dname: %s, hash: %u", dname, hash);
+
+		bpf_probe_read_kernel(open_event->dname, TASK_COMM_LEN, dname);
 		struct dentry *parent = BPF_CORE_READ(dentry, d_parent);
 		if (parent == dentry) {
 			break;
 		}
 		dentry = parent;
 	}
+	bpf_ringbuf_submit(open_event, 0);
 	bpf_printk("--------------------------------");
 
-	bpf_get_current_comm(&open_event->comm, TASK_COMM_LEN);
-
-	open_event->syscall_id = OPEN;
-	open_event->fd         = fd;
-	open_event->pid        = bpf_get_current_pid_tgid() >> 32;
-
-	bpf_ringbuf_submit(open_event, 0);
+	// bpf_ringbuf_submit(open_event, 0);
 	return 0;
 }
 

@@ -83,36 +83,38 @@ func main() {
 			continue
 		}
 
-		fd := event.Fd
-		pid := event.Pid
-		// comm := convertBytesToString(event.Comm[:])
-
-		// if comm != "open_server" && comm != "close_server" {
-		// continue
-		// }
-
-		log.Println("------------------------------------------------------------")
-		log.Printf("fd = %d, pid = %d", fd, pid)
-		if !mapFdPid.HasKey1(fd) {
-			mapFdPid[fd] = make(map[uint32]bool)
-			mapFdPid[fd][pid] = true
-			log.Printf("New fd opened, num of fds: %d", len(mapFdPid))
-
-		} else if !mapFdPid.HasKey2(fd, pid) {
-			mapFdPid[fd][pid] = true
-			nonLoopEdgeCount++
-			log.Printf("Already opened fd, num of pids: %d", len(mapFdPid[fd]))
-			log.Printf("map[%d] = %v", fd, mapFdPid[fd])
-		}
-		// This block means that the same pid handles the same fd.
-		// Therefore that process is regarded as legitimate.
-
-		log.Printf("%-16s %-16s %-16d %-10d",
+		log.Printf("%-16s %-16s %-16s %-10d",
 			convertBytesToString(event.Comm[:]),
 			getSysCallName(event.SyscallId),
-			fd,
-			pid,
+			convertBytesToString(event.Dname[:]),
+			event.Pid,
 		)
+
+		// fd := event.Fd
+		// pid := event.Pid
+
+		// log.Println("------------------------------------------------------------")
+		// log.Printf("fd = %d, pid = %d", fd, pid)
+		// if !mapFdPid.HasKey1(fd) {
+		// 	mapFdPid[fd] = make(map[uint32]bool)
+		// 	mapFdPid[fd][pid] = true
+		// 	log.Printf("New fd opened, num of fds: %d", len(mapFdPid))
+
+		// } else if !mapFdPid.HasKey2(fd, pid) {
+		// 	mapFdPid[fd][pid] = true
+		// 	nonLoopEdgeCount++
+		// 	log.Printf("Already opened fd, num of pids: %d", len(mapFdPid[fd]))
+		// 	log.Printf("map[%d] = %v", fd, mapFdPid[fd])
+		// }
+		// // This block means that the same pid handles the same fd.
+		// // Therefore that process is regarded as legitimate.
+
+		// log.Printf("%-16s %-16s %-16d %-10d",
+		// 	convertBytesToString(event.Comm[:]),
+		// 	getSysCallName(event.SyscallId),
+		// 	fd,
+		// 	pid,
+		// )
 
 	}
 
