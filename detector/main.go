@@ -86,12 +86,25 @@ func main() {
 		}
 
 		dname := convertBytesToString(event.Dname[:])
-		log.Printf("%-16s %-16s %-16s %-10d",
-			convertBytesToString(event.Comm[:]),
-			getSysCallName(event.SyscallId),
-			dname,
-			event.Pid,
-		)
+
+		if dname == "/" {
+			absolutePath = "/" + absolutePath
+
+			log.Printf("%-16s %-16s %-16s %-10d",
+				convertBytesToString(event.Comm[:]),
+				getSysCallName(event.SyscallId),
+				absolutePath,
+				event.Pid,
+			)
+			absolutePath = ""
+
+		} else {
+			if absolutePath == "" {
+				absolutePath = dname
+			} else {
+				absolutePath = dname + "/" + absolutePath
+			}
+		}
 
 		// fd := event.Fd
 		// pid := event.Pid
