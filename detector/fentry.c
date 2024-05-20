@@ -11,7 +11,7 @@
 
 #define MAX_PATH_LEN 256
 #define TASK_COMM_LEN 16
-#define DNAME_LEN 16
+#define DNAME_LEN 64
 
 char __license[] SEC("license") = "Dual MIT/GPL";
 
@@ -57,7 +57,7 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 		bpf_get_current_comm(&open_event->comm, TASK_COMM_LEN);
 		open_event->syscall_id = OPEN;
 		open_event->pid        = bpf_get_current_pid_tgid() >> 32;
-		bpf_probe_read_kernel(open_event->dname, TASK_COMM_LEN, dname);
+		bpf_probe_read_kernel(open_event->dname, DNAME_LEN, dname);
 
 		bpf_ringbuf_submit(open_event, 0);
 

@@ -57,8 +57,8 @@ func main() {
 	log.Printf("%-16s %-16s %-16s %-10s",
 		"Comm",
 		"Sys",
-		"Fd",
 		"Pid",
+		"Path",
 	)
 
 	var event bpfEvent
@@ -86,15 +86,16 @@ func main() {
 		}
 
 		dname := convertBytesToString(event.Dname[:])
+		log.Printf("dname = %s", dname)
 
 		if dname == "/" {
 			absolutePath = "/" + absolutePath
 
-			log.Printf("%-16s %-16s %-16s %-10d",
+			log.Printf("%-16s %-16s %-16d %-s",
 				convertBytesToString(event.Comm[:]),
 				getSysCallName(event.SyscallId),
-				absolutePath,
 				event.Pid,
+				absolutePath,
 			)
 			absolutePath = ""
 
