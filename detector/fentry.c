@@ -70,10 +70,6 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 			}
 		}
 
-		if (!open_event) {
-			return 0;
-		}
-
 		parent = BPF_CORE_READ(dentry, d_parent);
 		if (parent == dentry) {
 			break;
