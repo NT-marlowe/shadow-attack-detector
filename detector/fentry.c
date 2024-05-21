@@ -20,8 +20,8 @@ struct {
 	__uint(max_entries, 1 << 12);
 } events SEC(".maps");
 struct event {
-	u8 comm[TASK_COMM_LEN];
-	u8 dname[DNAME_LEN];
+	unsigned char comm[TASK_COMM_LEN];
+	u8 path[MAX_PATH_LEN];
 	u8 syscall_id;
 	u32 pid;
 };
@@ -58,31 +58,31 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 	u8 length                       = 0;
 
 	struct event *open_event;
+	open_event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
+	if (!open_event) {
+		bpf_printk("sys_open failed, ret = %ld\n", ret);
+		return 0;
+	}
+
+	bpf_get_current_comm(&open_event->comm, TASK_COMM_LEN);
+	open_event->syscall_id = OPEN;
+	open_event->pid        = bpf_get_current_pid_tgid() >> 32;
+
 	for (uint i = 0; i < 10; i++) {
 		const unsigned char *dname = BPF_CORE_READ(dentry, d_name.name);
 		const u32 hash             = BPF_CORE_READ(dentry, d_name.hash);
 		bpf_printk("dname: %s, hash: %u", dname, hash);
 
 		if (length < MAX_PATH_LEN - DNAME_LEN - 1) {
-			// u8 remained_len = MAX_PATH_LEN - length;
 			bpf_probe_read_kernel_str(buf + length, DNAME_LEN, dname);
-			bpf_printk("buf: %s", buf);
-			length += string_length(dname) - 1;
+			length += string_length(dname);
 		}
 
-		bpf_printk("length: %u", length);
-
-		open_event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
 		if (!open_event) {
 			return 0;
 		}
 
-		bpf_get_current_comm(&open_event->comm, TASK_COMM_LEN);
-		open_event->syscall_id = OPEN;
-		open_event->pid        = bpf_get_current_pid_tgid() >> 32;
-		bpf_probe_read_kernel(open_event->dname, DNAME_LEN, dname);
-
-		bpf_ringbuf_submit(open_event, 0);
+		// bpf_probe_read_kernel(open_event->dname, DNAME_LEN, dname);
 
 		parent = BPF_CORE_READ(dentry, d_parent);
 		if (parent == dentry) {
@@ -91,8 +91,9 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 		dentry = parent;
 	}
 	bpf_printk("--------------------------------");
+	bpf_probe_read_kernel_str(open_event->path, MAX_PATH_LEN, buf);
 
-	// bpf_ringbuf_submit(open_event, 0);
+	bpf_ringbuf_submit(open_event, 0);
 	return 0;
 }
 

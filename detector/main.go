@@ -65,7 +65,7 @@ func main() {
 	mapFdPid := make(Map2Dim[uint32, uint32, bool])
 	nonLoopEdgeCount := 0
 
-	absolutePath := ""
+	// absolutePath := ""
 	for {
 		record, err := rd.Read()
 		if err != nil {
@@ -85,27 +85,29 @@ func main() {
 			continue
 		}
 
-		dname := convertBytesToString(event.Dname[:])
-		log.Printf("dname = %s", dname)
+		// dname := convertBytesToString(event.Dname[:])
+		path := event.Path
 
-		if dname == "/" {
-			absolutePath = "/" + absolutePath
+		log.Printf("path = %s", path)
 
-			log.Printf("%-16s %-16s %-16d %-s",
-				convertBytesToString(event.Comm[:]),
-				getSysCallName(event.SyscallId),
-				event.Pid,
-				absolutePath,
-			)
-			absolutePath = ""
+		// if dname == "/" {
+		// 	absolutePath = "/" + absolutePath
 
-		} else {
-			if absolutePath == "" {
-				absolutePath = dname
-			} else {
-				absolutePath = dname + "/" + absolutePath
-			}
-		}
+		// 	log.Printf("%-16s %-16s %-16d %-s",
+		// 		convertBytesToString(event.Comm[:]),
+		// 		getSysCallName(event.SyscallId),
+		// 		event.Pid,
+		// 		absolutePath,
+		// 	)
+		// 	absolutePath = ""
+
+		// } else {
+		// 	if absolutePath == "" {
+		// 		absolutePath = dname
+		// 	} else {
+		// 		absolutePath = dname + "/" + absolutePath
+		// 	}
+		// }
 
 		// fd := event.Fd
 		// pid := event.Pid
