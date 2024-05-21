@@ -19,6 +19,7 @@ struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
 	__uint(max_entries, 1 << 12);
 } events SEC(".maps");
+
 struct event {
 	unsigned char comm[TASK_COMM_LEN];
 	u8 path[MAX_PATH_LEN];
@@ -26,15 +27,6 @@ struct event {
 	u32 pid;
 };
 struct event *unused __attribute__((unused));
-
-static __always_inline u32 string_length(const unsigned char *str) {
-	char tmp_buf[DNAME_LEN] = {0};
-	long ret = bpf_probe_read_kernel_str(tmp_buf, DNAME_LEN, str);
-	if (ret < 0) {
-		return 0;
-	}
-	return ret;
-}
 
 SEC("fexit/do_sys_openat2")
 int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
@@ -44,7 +36,7 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 		return 0;
 	}
 
-	u32 fd = ret;
+	const u32 fd = ret;
 
 	struct task_struct *task = (struct task_struct *)bpf_get_current_task();
 	struct file **fds        = BPF_CORE_READ(task, files, fdt, fd);
@@ -71,9 +63,11 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 		bpf_printk("dname: %s, hash: %u", dname, hash);
 
 		if (length < MAX_PATH_LEN - DNAME_LEN - 1) {
-			bpf_probe_read_kernel_str(
+			int tmp_len = bpf_probe_read_kernel_str(
 				open_event->path + length, DNAME_LEN, dname);
-			length += string_length(dname);
+			if (tmp_len > 0) {
+				length += tmp_len;
+			}
 		}
 
 		if (!open_event) {

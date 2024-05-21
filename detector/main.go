@@ -62,17 +62,12 @@ func main() {
 	)
 
 	var event bpfEvent
-	mapFdPid := make(Map2Dim[uint32, uint32, bool])
-	nonLoopEdgeCount := 0
 
 	for {
 		record, err := rd.Read()
 		if err != nil {
 			if errors.Is(err, ringbuf.ErrClosed) {
 				log.Println("received signal, exiting...")
-				log.Printf("Total number of fds opened: %d", len(mapFdPid))
-				log.Printf("Total number of entries in map: %d", mapFdPid.CountAllElements())
-				log.Printf("Total number of non-loop edges: %d", nonLoopEdgeCount)
 				return
 			}
 			log.Printf("Reading from ringbuff: %s", err)
