@@ -52,6 +52,7 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 	struct file *f           = NULL;
 	bpf_probe_read_kernel(&f, sizeof(f), &fds[fd]);
 	struct dentry *dentry = BPF_CORE_READ(f, f_path.dentry);
+	struct dentry *parent = NULL;
 
 	u8 buf[MAX_PATH_LEN] = {0};
 	u32 length           = 0;
@@ -77,7 +78,7 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 
 		bpf_ringbuf_submit(open_event, 0);
 
-		struct dentry *parent = BPF_CORE_READ(dentry, d_parent);
+		parent = BPF_CORE_READ(dentry, d_parent);
 		if (parent == dentry) {
 			break;
 		}
