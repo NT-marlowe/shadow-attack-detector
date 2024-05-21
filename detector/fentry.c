@@ -9,7 +9,7 @@
 
 #include "./headers/vmlinux.h"
 
-#define MAX_PATH_LEN 256
+#define MAX_PATH_LEN 512
 #define TASK_COMM_LEN 16
 #define DNAME_LEN 64
 
@@ -30,7 +30,6 @@ struct event *unused __attribute__((unused));
 static __always_inline u32 string_length(const unsigned char *str) {
 	char tmp_buf[DNAME_LEN] = {0};
 	long ret = bpf_probe_read_kernel_str(tmp_buf, DNAME_LEN, str);
-
 	if (ret < 0) {
 		return 0;
 	}
@@ -65,7 +64,7 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 	open_event->syscall_id = OPEN;
 	open_event->pid        = bpf_get_current_pid_tgid() >> 32;
 
-	u8 length = 0;
+	u16 length = 0;
 	for (uint i = 0; i < 10; i++) {
 		const unsigned char *dname = BPF_CORE_READ(dentry, d_name.name);
 		const u32 hash             = BPF_CORE_READ(dentry, d_name.hash);

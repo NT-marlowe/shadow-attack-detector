@@ -14,7 +14,7 @@ import (
 
 type bpfEvent struct {
 	Comm      [16]uint8
-	Path      [256]uint8
+	Path      [512]uint8
 	SyscallId uint8
 	_         [3]byte
 	Pid       uint32
