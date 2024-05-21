@@ -85,11 +85,10 @@ func main() {
 		}
 
 		path := reconstructPath(event.Path[:])
-
-		log.Printf("path = %s", path)
+		// log.Printf("path = %s", path)
 
 		// fd := event.Fd
-		// pid := event.Pid
+		pid := event.Pid
 
 		// log.Println("------------------------------------------------------------")
 		// log.Printf("fd = %d, pid = %d", fd, pid)
@@ -107,12 +106,12 @@ func main() {
 		// // This block means that the same pid handles the same fd.
 		// // Therefore that process is regarded as legitimate.
 
-		// log.Printf("%-16s %-16s %-16d %-10d",
-		// 	convertBytesToString(event.Comm[:]),
-		// 	getSysCallName(event.SyscallId),
-		// 	fd,
-		// 	pid,
-		// )
+		log.Printf("%-16s %-16s %-16d %-16s",
+			convertBytesToString(event.Comm[:]),
+			getSysCallName(event.SyscallId),
+			pid,
+			path,
+		)
 
 	}
 

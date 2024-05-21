@@ -18,7 +18,7 @@ func getSysCallName(sysType uint8) string {
 
 func convertBytesToString(bytes []uint8) string {
 	commStr := ""
-	for _, b := range bytes[:16] {
+	for _, b := range bytes[:] {
 		if b == 0 {
 			break
 		}
