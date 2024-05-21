@@ -63,11 +63,11 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 		const u32 hash             = BPF_CORE_READ(dentry, d_name.hash);
 		bpf_printk("dname: %s, hash: %u", dname, hash);
 
-		if (length < 74) {
-			u8 remained_len = MAX_PATH_LEN - length;
-			bpf_probe_read_kernel_str(buf + length, remained_len, dname);
+		if (length < MAX_PATH_LEN - DNAME_LEN - 1) {
+			// u8 remained_len = MAX_PATH_LEN - length;
+			bpf_probe_read_kernel_str(buf + length, DNAME_LEN, dname);
 			bpf_printk("buf: %s", buf);
-			length += string_length(dname);
+			length += string_length(dname) - 1;
 		}
 
 		bpf_printk("length: %u", length);
