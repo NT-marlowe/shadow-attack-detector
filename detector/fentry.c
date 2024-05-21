@@ -54,8 +54,8 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 	struct dentry *dentry = BPF_CORE_READ(f, f_path.dentry);
 	struct dentry *parent = NULL;
 
-	u8 buf[MAX_PATH_LEN] = {0};
-	u32 length           = 0;
+	unsigned char buf[MAX_PATH_LEN] = {0};
+	u8 length                       = 0;
 
 	struct event *open_event;
 	for (uint i = 0; i < 10; i++) {
@@ -63,7 +63,13 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 		const u32 hash             = BPF_CORE_READ(dentry, d_name.hash);
 		bpf_printk("dname: %s, hash: %u", dname, hash);
 
-		length += string_length(dname);
+		if (length < 60) {
+			u32 remained_len = MAX_PATH_LEN - length;
+			bpf_probe_read_kernel_str(buf + length, remained_len, dname);
+			bpf_printk("buf: %s", buf);
+			length += string_length(dname);
+		}
+
 		bpf_printk("length: %u", length);
 
 		open_event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
