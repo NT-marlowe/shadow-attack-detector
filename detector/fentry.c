@@ -54,9 +54,6 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 	struct dentry *dentry = BPF_CORE_READ(f, f_path.dentry);
 	struct dentry *parent = NULL;
 
-	unsigned char buf[MAX_PATH_LEN] = {0};
-	u8 length                       = 0;
-
 	struct event *open_event;
 	open_event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
 	if (!open_event) {
@@ -68,21 +65,21 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 	open_event->syscall_id = OPEN;
 	open_event->pid        = bpf_get_current_pid_tgid() >> 32;
 
+	u8 length = 0;
 	for (uint i = 0; i < 10; i++) {
 		const unsigned char *dname = BPF_CORE_READ(dentry, d_name.name);
 		const u32 hash             = BPF_CORE_READ(dentry, d_name.hash);
 		bpf_printk("dname: %s, hash: %u", dname, hash);
 
 		if (length < MAX_PATH_LEN - DNAME_LEN - 1) {
-			bpf_probe_read_kernel_str(buf + length, DNAME_LEN, dname);
+			bpf_probe_read_kernel_str(
+				open_event->path + length, DNAME_LEN, dname);
 			length += string_length(dname);
 		}
 
 		if (!open_event) {
 			return 0;
 		}
-
-		// bpf_probe_read_kernel(open_event->dname, DNAME_LEN, dname);
 
 		parent = BPF_CORE_READ(dentry, d_parent);
 		if (parent == dentry) {
@@ -91,7 +88,6 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 		dentry = parent;
 	}
 	bpf_printk("--------------------------------");
-	bpf_probe_read_kernel_str(open_event->path, MAX_PATH_LEN, buf);
 
 	bpf_ringbuf_submit(open_event, 0);
 	return 0;

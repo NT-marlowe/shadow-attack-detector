@@ -26,3 +26,31 @@ func convertBytesToString(bytes []uint8) string {
 	}
 	return commStr
 }
+
+func reconstructPath(bytes []uint8) string {
+	path := ""
+	i := 0
+	prev_i := 0
+	for ; i < len(bytes)-1; i++ {
+		if bytes[i] == 0 {
+			dname := convertBytesToString(bytes[prev_i:i])
+			if dname == "/" {
+				path = "/" + path
+				return path
+			}
+
+			if path != "" {
+				path = "/" + path
+			}
+			path = convertBytesToString(bytes[prev_i:i]) + path
+
+			if bytes[i+1] == 0 {
+				break
+			}
+
+			prev_i = i + 1
+			i++
+		}
+	}
+	return path
+}
