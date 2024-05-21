@@ -27,6 +27,16 @@ struct event {
 };
 struct event *unused __attribute__((unused));
 
+static __always_inline u32 string_length(const unsigned char *str) {
+	char tmp_buf[DNAME_LEN] = {0};
+	long ret = bpf_probe_read_kernel_str(tmp_buf, DNAME_LEN, str);
+
+	if (ret < 0) {
+		return 0;
+	}
+	return ret;
+}
+
 SEC("fexit/do_sys_openat2")
 int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 	struct open_how *how, long ret) {
@@ -43,11 +53,17 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 	bpf_probe_read_kernel(&f, sizeof(f), &fds[fd]);
 	struct dentry *dentry = BPF_CORE_READ(f, f_path.dentry);
 
+	u8 buf[MAX_PATH_LEN] = {0};
+	u32 length           = 0;
+
 	struct event *open_event;
 	for (uint i = 0; i < 10; i++) {
 		const unsigned char *dname = BPF_CORE_READ(dentry, d_name.name);
 		const u32 hash             = BPF_CORE_READ(dentry, d_name.hash);
 		bpf_printk("dname: %s, hash: %u", dname, hash);
+
+		length += string_length(dname);
+		bpf_printk("length: %u", length);
 
 		open_event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
 		if (!open_event) {

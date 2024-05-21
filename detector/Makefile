@@ -21,3 +21,7 @@ dump: fentry.o
 .PHONY: load
 load: fentry.o
 	sudo bpftool prog load fentry.o /sys/fs/bpf/my_program -d
+
+.PHONY: cat
+cat:
+	sudo cat /sys/kernel/debug/tracing/trace_pipe
