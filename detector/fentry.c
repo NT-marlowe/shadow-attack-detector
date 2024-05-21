@@ -63,7 +63,7 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 		const u32 hash             = BPF_CORE_READ(dentry, d_name.hash);
 		bpf_printk("dname: %s, hash: %u", dname, hash);
 
-		if (length < 60) {
+		if (length < 73) {
 			u32 remained_len = MAX_PATH_LEN - length;
 			bpf_probe_read_kernel_str(buf + length, remained_len, dname);
 			bpf_printk("buf: %s", buf);
