@@ -40,37 +40,35 @@ static inline void read_path_and_write_buf(const u32 fd, enum syscall_id id) {
 	event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
 	if (!event) {
 		bpf_printk("sys_open failed, fd = %ld\n", fd);
-		// return 0;
-		// exit(0);
-	}
+	} else {
+		bpf_get_current_comm(&event->comm, TASK_COMM_LEN);
+		event->syscall_id = id;
+		event->pid        = bpf_get_current_pid_tgid() >> 32;
 
-	bpf_get_current_comm(&event->comm, TASK_COMM_LEN);
-	event->syscall_id = id;
-	event->pid        = bpf_get_current_pid_tgid() >> 32;
+		u16 length = 0;
+		for (uint i = 0; i < 10; i++) {
+			const unsigned char *dname = BPF_CORE_READ(dentry, d_name.name);
+			const u32 hash             = BPF_CORE_READ(dentry, d_name.hash);
+			bpf_printk("dname: %s, hash: %u", dname, hash);
 
-	u16 length = 0;
-	for (uint i = 0; i < 10; i++) {
-		const unsigned char *dname = BPF_CORE_READ(dentry, d_name.name);
-		const u32 hash             = BPF_CORE_READ(dentry, d_name.hash);
-		bpf_printk("dname: %s, hash: %u", dname, hash);
-
-		if (length < MAX_PATH_LEN - DNAME_LEN - 1) {
-			int tmp_len = bpf_probe_read_kernel_str(
-				event->path + length, DNAME_LEN, dname);
-			if (tmp_len > 0) {
-				length += tmp_len;
+			if (length < MAX_PATH_LEN - DNAME_LEN - 1) {
+				int tmp_len = bpf_probe_read_kernel_str(
+					event->path + length, DNAME_LEN, dname);
+				if (tmp_len > 0) {
+					length += tmp_len;
+				}
 			}
-		}
 
-		parent = BPF_CORE_READ(dentry, d_parent);
-		if (parent == dentry) {
-			break;
+			parent = BPF_CORE_READ(dentry, d_parent);
+			if (parent == dentry) {
+				break;
+			}
+			dentry = parent;
 		}
-		dentry = parent;
+		bpf_printk("--------------------------------");
+
+		bpf_ringbuf_submit(event, 0);
 	}
-	bpf_printk("--------------------------------");
-
-	bpf_ringbuf_submit(event, 0);
 }
 
 SEC("fexit/do_sys_openat2")
@@ -83,47 +81,7 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 
 	const u32 fd = ret;
 
-	struct task_struct *task = (struct task_struct *)bpf_get_current_task();
-	struct file **fds        = BPF_CORE_READ(task, files, fdt, fd);
-	struct file *f           = NULL;
-	bpf_probe_read_kernel(&f, sizeof(f), &fds[fd]);
-	struct dentry *dentry = BPF_CORE_READ(f, f_path.dentry);
-	struct dentry *parent = NULL;
-
-	struct event *open_event;
-	open_event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
-	if (!open_event) {
-		bpf_printk("sys_open failed, ret = %ld\n", ret);
-		return 0;
-	}
-
-	bpf_get_current_comm(&open_event->comm, TASK_COMM_LEN);
-	open_event->syscall_id = OPEN;
-	open_event->pid        = bpf_get_current_pid_tgid() >> 32;
-
-	u16 length = 0;
-	for (uint i = 0; i < 10; i++) {
-		const unsigned char *dname = BPF_CORE_READ(dentry, d_name.name);
-		const u32 hash             = BPF_CORE_READ(dentry, d_name.hash);
-		bpf_printk("dname: %s, hash: %u", dname, hash);
-
-		if (length < MAX_PATH_LEN - DNAME_LEN - 1) {
-			int tmp_len = bpf_probe_read_kernel_str(
-				open_event->path + length, DNAME_LEN, dname);
-			if (tmp_len > 0) {
-				length += tmp_len;
-			}
-		}
-
-		parent = BPF_CORE_READ(dentry, d_parent);
-		if (parent == dentry) {
-			break;
-		}
-		dentry = parent;
-	}
-	bpf_printk("--------------------------------");
-
-	bpf_ringbuf_submit(open_event, 0);
+	read_path_and_write_buf(fd, OPEN);
 	return 0;
 }
 
