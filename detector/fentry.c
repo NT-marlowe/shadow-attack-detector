@@ -9,7 +9,7 @@
 
 #include "./headers/vmlinux.h"
 
-#define MAX_PATH_LEN 256
+#define MAX_PATH_LEN 512
 #define TASK_COMM_LEN 16
 #define DNAME_LEN 64
 
@@ -85,8 +85,8 @@ int BPF_PROG(do_sys_oepnat_exit, int dfd, const char *filename,
 	return 0;
 }
 
-SEC("fentry/close_fd")
-int BPF_PROG(close_fd_entry, unsigned int fd) {
-	read_path_and_write_buf(fd, CLOSE);
-	return 0;
-}
+// SEC("fentry/close_fd")
+// int BPF_PROG(close_fd_entry, unsigned int fd) {
+// 	read_path_and_write_buf(fd, CLOSE);
+// 	return 0;
+// }

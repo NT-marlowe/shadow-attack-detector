@@ -14,7 +14,7 @@ import (
 
 type bpfEvent struct {
 	Comm      [16]uint8
-	Path      [256]uint8
+	Path      [512]uint8
 	SyscallId uint8
 	_         [3]byte
 	Pid       uint32
@@ -61,7 +61,6 @@ type bpfSpecs struct {
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type bpfProgramSpecs struct {
-	CloseFdEntry    *ebpf.ProgramSpec `ebpf:"close_fd_entry"`
 	DoSysOepnatExit *ebpf.ProgramSpec `ebpf:"do_sys_oepnat_exit"`
 }
 
@@ -104,13 +103,11 @@ func (m *bpfMaps) Close() error {
 //
 // It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.
 type bpfPrograms struct {
-	CloseFdEntry    *ebpf.Program `ebpf:"close_fd_entry"`
 	DoSysOepnatExit *ebpf.Program `ebpf:"do_sys_oepnat_exit"`
 }
 
 func (p *bpfPrograms) Close() error {
 	return _BpfClose(
-		p.CloseFdEntry,
 		p.DoSysOepnatExit,
 	)
 }
