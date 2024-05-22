@@ -28,11 +28,11 @@ func main() {
 	}
 	defer objs.Close()
 
-	// linkClose, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.CloseFd})
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer linkClose.Close()
+	linkClose, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.CloseFd})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer linkClose.Close()
 
 	linkOpen, err := link.AttachTracing(link.TracingOptions{Program: objs.bpfPrograms.DoSysOepnatExit})
 	if err != nil {

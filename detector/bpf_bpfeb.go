@@ -61,6 +61,7 @@ type bpfSpecs struct {
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type bpfProgramSpecs struct {
+	CloseFd         *ebpf.ProgramSpec `ebpf:"close_fd"`
 	DoSysOepnatExit *ebpf.ProgramSpec `ebpf:"do_sys_oepnat_exit"`
 }
 
@@ -103,11 +104,13 @@ func (m *bpfMaps) Close() error {
 //
 // It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.
 type bpfPrograms struct {
+	CloseFd         *ebpf.Program `ebpf:"close_fd"`
 	DoSysOepnatExit *ebpf.Program `ebpf:"do_sys_oepnat_exit"`
 }
 
 func (p *bpfPrograms) Close() error {
 	return _BpfClose(
+		p.CloseFd,
 		p.DoSysOepnatExit,
 	)
 }
