@@ -40,7 +40,7 @@ static inline void read_path_and_write_buf(const u32 fd, enum syscall_id id) {
 	struct event *event;
 	event = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
 	if (!event) {
-		bpf_printk("sys_open failed, fd = %ld\n", fd);
+		// bpf_printk("sys_open failed, fd = %ld\n", fd);
 	} else {
 		bpf_get_current_comm(&event->comm, TASK_COMM_LEN);
 		event->syscall_id = id;
@@ -50,7 +50,8 @@ static inline void read_path_and_write_buf(const u32 fd, enum syscall_id id) {
 		for (uint i = 0; i < MAX_LOOP; i++) {
 			const unsigned char *dname = BPF_CORE_READ(dentry, d_name.name);
 			const u32 hash             = BPF_CORE_READ(dentry, d_name.hash);
-			bpf_printk("dname: %s, hash: %u", dname, hash);
+
+			// bpf_printk("dname: %s, hash: %u\n", dname, hash);
 
 			if (length < MAX_PATH_LEN - DNAME_LEN - 1) {
 				int tmp_len = bpf_probe_read_kernel_str(
@@ -66,7 +67,7 @@ static inline void read_path_and_write_buf(const u32 fd, enum syscall_id id) {
 			}
 			dentry = parent;
 		}
-		bpf_printk("--------------------------------");
+		// bpf_printk("--------------------------------");
 
 		bpf_ringbuf_submit(event, 0);
 	}

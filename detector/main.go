@@ -80,8 +80,6 @@ func main() {
 		}
 
 		path := reconstructPath(event.Path[:])
-		// log.Printf("path = %s", path)
-
 		pid := event.Pid
 
 		log.Printf("%-16s %-16s %-16d %-16s",
@@ -90,7 +88,5 @@ func main() {
 			pid,
 			path,
 		)
-
 	}
-
 }
